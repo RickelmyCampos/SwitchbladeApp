@@ -10,10 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.gilbersoncampos.switchblade.ui.screens.HomeScreen
+import com.gilbersoncampos.switchblade.ui.screens.CameraView
 import com.gilbersoncampos.switchblade.ui.theme.SwitchbladeAppTheme
 
-class MainActivity : ComponentActivity() {
+class CameraActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -24,8 +24,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    HomeScreen()
-
+                    CameraView()
                 }
             }
         }
