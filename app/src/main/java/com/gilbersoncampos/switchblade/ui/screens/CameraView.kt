@@ -1,9 +1,8 @@
 package com.gilbersoncampos.switchblade.ui.screens
 
-import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Rect
 import android.graphics.RectF
+import android.util.Log
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -53,7 +52,7 @@ fun CameraView() {
                 textQrCode.value = value.barcodes[0].rawValue.toString()
 
 
-                rectangle.value = ajustarBoundingBox(value.barcodes[0],2.5f,2.5f,2f,1.7f)
+                rectangle.value = ajustarBoundingBox(value.barcodes[0], 2.5f, 2.5f, 2f, 1.7f)
             }
 
 
@@ -77,15 +76,16 @@ fun CameraView() {
 
         }
         if (textQrCode.value.isNotEmpty()) {
-            Canvas(modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0x435464c9))) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x435464c9))
+            ) {
 
                 drawRect(
                     color = Color(0x55FFFFFF),
                     topLeft = Offset(rectangle.value.top, rectangle.value.left),
                     size = Size(rectangle.value.width(), rectangle.value.height()),
-
                 )
             }
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
@@ -106,7 +106,7 @@ fun CameraView() {
                         Text(text = textQrCode.value)
                         Button(onClick = {
                             textQrCode.value = ""
-                            rectangle.value= RectF()
+                            rectangle.value = RectF()
                         }) {
                             Text(text = "Limpar")
 
@@ -119,8 +119,6 @@ fun CameraView() {
         }
     }
 }
-
-
 
 
 // Função para ajustar a bounding box do QR Code detectado
@@ -142,7 +140,13 @@ fun CameraView() {
 //    }
 //    return barcode.boundingBox!!
 //}
-fun ajustarBoundingBox(barcode: Barcode, escalaX: Float, escalaY: Float, offsetX: Float, offsetY: Float): RectF {
+fun ajustarBoundingBox(
+    barcode: Barcode,
+    escalaX: Float,
+    escalaY: Float,
+    offsetX: Float,
+    offsetY: Float
+): RectF {
     // Obtendo a bounding box original
     val boundingBoxOriginal = barcode.boundingBox
     if (boundingBoxOriginal != null) {
@@ -160,18 +164,26 @@ fun ajustarBoundingBox(barcode: Barcode, escalaX: Float, escalaY: Float, offsetX
         return RectF()
     }
 }
+fun rectangles(rectangle: Rect){
+    Log.d("RECTANGLE ORIGINAL","" +
+            "TOP :${rectangle.top}\n" +
+            "LEFT :${rectangle.left}\n" +
+            "BOTTOM :${rectangle.bottom}\n" +
+            "RIGHT :${rectangle.right}\n" +
+            "WE")
+}
+fun isLandscape() {
 
- fun isLandscape(){
-
- }
+}
 
 @Composable
 @androidx.compose.ui.tooling.preview.Preview
 fun CameraViewPreview() {
-    Column (
+    Column(
         Modifier
             .height(50.dp)
-            .background(Color.White)){
+            .background(Color.White)
+    ) {
         Text(text = "ALGUMA COISa", color = Color(0x435464c9))
     }
 
