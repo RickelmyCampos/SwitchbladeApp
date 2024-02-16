@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.gilbersoncampos.switchblade.utils.CameraUtils
 import com.gilbersoncampos.switchblade.utils.EventListener
+import com.google.mlkit.vision.barcode.common.Barcode
 
 @Composable
 fun CameraView() {
@@ -44,7 +45,7 @@ fun CameraView() {
         mutableStateOf("")
     }
     val rectangle = remember {
-        mutableStateOf(Rect())
+        mutableStateOf(RectF())
     }
     val listener = object : EventListener {
         override fun onSuccessEvent(value: CameraUtils.ScanResult) {
@@ -52,7 +53,7 @@ fun CameraView() {
                 textQrCode.value = value.barcodes[0].rawValue.toString()
 
 
-                rectangle.value = value.barcodes[0].boundingBox!!
+                rectangle.value = ajustarBoundingBox(value.barcodes[0],2.5f,2.5f,2f,1.7f)
             }
 
 
@@ -82,8 +83,8 @@ fun CameraView() {
 
                 drawRect(
                     color = Color(0x55FFFFFF),
-                    topLeft = Offset(rectangle.value.top.toFloat(), rectangle.value.left.toFloat()),
-                    size = Size(rectangle.value.width().toFloat(), rectangle.value.height().toFloat()),
+                    topLeft = Offset(rectangle.value.top, rectangle.value.left),
+                    size = Size(rectangle.value.width(), rectangle.value.height()),
 
                 )
             }
@@ -105,7 +106,7 @@ fun CameraView() {
                         Text(text = textQrCode.value)
                         Button(onClick = {
                             textQrCode.value = ""
-                            rectangle.value= Rect()
+                            rectangle.value= RectF()
                         }) {
                             Text(text = "Limpar")
 
@@ -122,12 +123,55 @@ fun CameraView() {
 
 
 
+// Função para ajustar a bounding box do QR Code detectado
+//fun ajustarBoundingBox(barcode: Barcode, fatorDeCorrecao: Float): Rect {
+//    // Obtendo a bounding box original
+//    val boundingBoxOriginal = barcode.boundingBox
+//    if (boundingBoxOriginal != null) {
+//        // Calculando o novo tamanho da bounding box
+//        val novaLargura = (boundingBoxOriginal.width() * fatorDeCorrecao).toInt()
+//        val novaAltura = (boundingBoxOriginal.height() * fatorDeCorrecao).toInt()
+//        // Calculando o novo ponto de origem (top-left corner) para manter a bounding box centralizada
+//        val novoX = boundingBoxOriginal.centerX() - novaLargura / 2
+//        val novoY = boundingBoxOriginal.centerY() - novaAltura / 2
+//        // Criando a nova bounding box ajustada
+//        val novaBoundingBox =
+//            android.graphics.Rect(novoX, novoY, novoX + novaLargura, novoY + novaAltura)
+//
+//        return novaBoundingBox
+//    }
+//    return barcode.boundingBox!!
+//}
+fun ajustarBoundingBox(barcode: Barcode, escalaX: Float, escalaY: Float, offsetX: Float, offsetY: Float): RectF {
+    // Obtendo a bounding box original
+    val boundingBoxOriginal = barcode.boundingBox
+    if (boundingBoxOriginal != null) {
+        // Ajustando a largura e a altura com os fatores de escala fornecidos
+        val novaLargura = (boundingBoxOriginal.width() * escalaX)
+        val novaAltura = (boundingBoxOriginal.height() * escalaY)
+        // Ajustando a posição com os deslocamentos fornecidos
+        val novoY = boundingBoxOriginal.left * offsetX
+        val novoX = boundingBoxOriginal.top * offsetY
+        // Criando a nova bounding box ajustada
+        val novaBoundingBox = RectF(novoX, novoY, novoX + novaLargura, novoY + novaAltura)
+        return novaBoundingBox
+    } else {
+        // Se não houver bounding box original, retorne uma caixa vazia ou lance uma exceção
+        return RectF()
+    }
+}
 
+ fun isLandscape(){
+
+ }
 
 @Composable
 @androidx.compose.ui.tooling.preview.Preview
 fun CameraViewPreview() {
-    Column (Modifier.height(50.dp).background(Color.White)){
+    Column (
+        Modifier
+            .height(50.dp)
+            .background(Color.White)){
         Text(text = "ALGUMA COISa", color = Color(0x435464c9))
     }
 
