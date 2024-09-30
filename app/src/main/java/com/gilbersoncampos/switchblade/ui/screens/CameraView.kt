@@ -1,19 +1,24 @@
 package com.gilbersoncampos.switchblade.ui.screens
 
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Context.CLIPBOARD_SERVICE
 import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,19 +26,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.gilbersoncampos.switchblade.utils.CameraUtils
 import com.gilbersoncampos.switchblade.utils.EventListener
 import com.google.mlkit.vision.barcode.common.Barcode
 
+@SuppressLint("ServiceCast")
 @Composable
-fun CameraView() {
+fun CameraView(onFinish: () -> Unit) {
     val context = LocalContext.current
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -50,16 +54,12 @@ fun CameraView() {
         override fun onSuccessEvent(value: CameraUtils.ScanResult) {
             if (value.barcodes.size > 0) {
                 textQrCode.value = value.barcodes[0].rawValue.toString()
-
-
                 rectangle.value = ajustarBoundingBox(value.barcodes[0], 2.5f, 2.5f, 2f, 1.7f)
+                cameraUtils.closeCamera()
             }
-
-
         }
 
         override fun onFailedEvent(value: String) {
-
         }
 
     }
@@ -69,57 +69,51 @@ fun CameraView() {
         listener = listener
     )
 
+
     Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
-        Button(onClick = { /*TODO*/ }) {
-            Text(text = "X")
-
-        }
         if (textQrCode.value.isNotEmpty()) {
-            Canvas(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0x435464c9))
-            ) {
-
-                drawRect(
-                    color = Color(0x55FFFFFF),
-                    topLeft = Offset(rectangle.value.top, rectangle.value.left),
-                    size = Size(rectangle.value.width(), rectangle.value.height()),
-                )
-            }
-            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Gray)
-                            .padding(
-                                16.dp
-                            ),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = textQrCode.value)
+                    Text(text = textQrCode.value)
+                    Row() {
                         Button(onClick = {
-                            textQrCode.value = ""
-                            rectangle.value = RectF()
+                            copyText(textQrCode.value, context)
                         }) {
-                            Text(text = "Limpar")
-
+                            Text(text = "Copiar")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = {
+                            //TODO(Inplementar click)
+                        }) {
+                            Text(text = "Ação")
                         }
                     }
-
+                    Button(onClick = {
+                        textQrCode.value = ""
+                    }) {
+                        Text(text = "Ler novamente")
+                    }
                 }
-
             }
+        } else {
+            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+        }
+        Button(onClick = onFinish) {
+            Text(text = "X")
         }
     }
 }
 
+fun copyText(text: String, context: Context) {
+    val clip = ClipData.newPlainText("Copied Text", text)
+    val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(clip)
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S)
+        Toast.makeText(context, "Texto Copiado", Toast.LENGTH_SHORT).show()
+}
 
 // Função para ajustar a bounding box do QR Code detectado
 //fun ajustarBoundingBox(barcode: Barcode, fatorDeCorrecao: Float): Rect {
@@ -164,27 +158,24 @@ fun ajustarBoundingBox(
         return RectF()
     }
 }
-fun rectangles(rectangle: Rect){
-    Log.d("RECTANGLE ORIGINAL","" +
-            "TOP :${rectangle.top}\n" +
-            "LEFT :${rectangle.left}\n" +
-            "BOTTOM :${rectangle.bottom}\n" +
-            "RIGHT :${rectangle.right}\n" +
-            "WE")
+
+fun rectangles(rectangle: Rect) {
+    Log.d(
+        "RECTANGLE ORIGINAL", "" +
+                "TOP :${rectangle.top}\n" +
+                "LEFT :${rectangle.left}\n" +
+                "BOTTOM :${rectangle.bottom}\n" +
+                "RIGHT :${rectangle.right}\n" +
+                "WE"
+    )
 }
+
 fun isLandscape() {
 
 }
 
 @Composable
-@androidx.compose.ui.tooling.preview.Preview
+@Preview
 fun CameraViewPreview() {
-    Column(
-        Modifier
-            .height(50.dp)
-            .background(Color.White)
-    ) {
-        Text(text = "ALGUMA COISa", color = Color(0x435464c9))
-    }
-
+    CameraView({})
 }

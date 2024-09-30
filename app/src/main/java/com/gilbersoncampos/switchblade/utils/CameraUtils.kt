@@ -1,6 +1,7 @@
 package com.gilbersoncampos.switchblade.utils
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
@@ -35,6 +36,10 @@ class CameraUtils(private val context: Context) {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+fun closeCamera(){
+    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+    cameraProviderFuture.get().unbindAll()
+}
     fun startCamera(
         previewView: PreviewView,
         lifecycleOwner: LifecycleOwner,
